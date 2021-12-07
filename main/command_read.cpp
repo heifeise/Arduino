@@ -40,34 +40,35 @@ int command::analyse_command()
   if (getcommand)
   {
     getcommand = false;
-    switch (command_pack[1])
+    switch (command_pack[1])//分析有效命令的类别,在需要时调用内置函数获取命令中的有效数据
     {
       case 0x01: return 1;
-      case 0x02: get_time_array();return 2;
-      case 0x03: get_time_array();return 3;
+      case 0x02: getArray();return 2;
+      case 0x03: getArray();return 3;
       case 0x04: return 4;
       case 0x05: return 5;
       case 0x06: return 6;
+      case 0x07: getArray();return 7;
+      case 0x08: return 8;
+      case 0x09: getArray();return 9;
       default: return -1;
     }
   }
 }
 
-void command::get_time_array()
+void command::getArray()//获取有效数据
 {
-  TimeArray[0] = changeB(command_pack[2]);
-  TimeArray[1] = changeB(command_pack[3]);
-  TimeArray[2] = changeB(command_pack[4]); 
+  NumArray[0] = changeH(command_pack[2]);
+  NumArray[1] = changeH(command_pack[3]);
+  NumArray[2] = changeH(command_pack[4]); 
 }
 
-int command::changeB(unsigned char ch)
+int command::changeH(unsigned char ch)//将两个四位16进制数各自转化为int型的十进制数后，前一个数字乘以10与后一个相加
 {
   int j = 3;
   int sum = 0;
   int zero = 0;
   int a = (ch&0xf0)>>4|zero;
-  //Serial.print("a:");
-  //Serial.println(a);
   int b = ch&0x0f|zero;
   sum = a*10+b;
   return sum;

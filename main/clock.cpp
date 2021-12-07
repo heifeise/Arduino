@@ -22,6 +22,7 @@ myClock::myClock()
   pinMode(SDI, OUTPUT);
   pinMode(SFTCLK, OUTPUT);
   pinMode(LCHCLK, OUTPUT);
+  digitalWrite(alarmpin,HIGH);
   //函数外不可初始化，手动设置初始状态
   timer.initialset(1000);
   timerb1.initialset(50);
@@ -256,7 +257,7 @@ void myClock::disPlay()
 void myClock::output(int num, int sel)
 {
   unsigned char number = NUM[num];
-  unsigned char select = SELECTED[sel];
+  unsigned char Select = SELECTED[sel];
   const static int n = 8;
 
   for (int i = 0; i < 8; i++)
@@ -270,9 +271,9 @@ void myClock::output(int num, int sel)
   for (int i = 0; i < 8; i++)
   {
 
-    bool tem = 0x80 & select ;
+    bool tem = 0x80 & Select ;
     digitalWrite(SDI, tem);
-    select <<= 1;
+    Select <<= 1;
     digitalWrite(SFTCLK, 0);
     digitalWrite(SFTCLK, 1);
   }
@@ -280,7 +281,7 @@ void myClock::output(int num, int sel)
   digitalWrite(LCHCLK, 1);
 }
 
-void myClock::PrintTime(int H = -1, int M = -1, int S = -1)
+void myClock::PrintTime(int H, int M, int S)
 {
   if (H == -1 || M == -1 || S == -1)
   {
