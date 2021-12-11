@@ -12,7 +12,7 @@
 const static int SDI = 8; //输入
 const static int SFTCLK = 7; //移位,低电平使能
 const static int LCHCLK = 4; //锁存，低电平使能
-unsigned char NUM[13] = {0xc0, 0xf9, 0xa4, 0xb0, 0x99, 0x92, 0x82, 0xf8, 0x80, 0x90, 0xff, 0x7f, 0xc6}; //0-9,全灭
+unsigned char NUM[13] = {0xc0, 0xf9, 0xa4, 0xb0, 0x99, 0x92, 0x82, 0xf8, 0x80, 0x90, 0xff, 0x7f, 0xc6}; //0-9,全灭,'.','C'
 unsigned char SELECTED[5] = {0x00, 0x01, 0x02, 0x04, 0x08};//片选,第一个凑数
 
 bool flag = false;//用以按钮A1消抖
@@ -22,6 +22,7 @@ int ledState = HIGH;
 int laststate = HIGH;//按钮A1的上一个状态
 int MODE = 0;//0 1 2 3 4五种模式
 int lastMode = 4;//上一个运行模式
+float temperature = 0;
 
 myClock myclock;//时钟类
 MyTimer ledTimer(500);//用以led控制
@@ -45,6 +46,7 @@ void setup()
   MsTimer2::set(1, onTimer);
   MsTimer2::start();
   com.interface();
+  timertempera.stopwork();
   Serial.begin(9600);
 }
 
@@ -165,27 +167,27 @@ void tip()//向串口输出提示信息
 {
   if (lastMode == 4 && MODE == 0)
   {
-    Serial.println("正常运行");
+    Serial.println("work");
     lastMode = MODE;
   }
   else if (lastMode == 0 && MODE == 1)
   {
-    Serial.println("校时");
+    Serial.println("modefy hour");
     lastMode = MODE;
   }
   else if (lastMode == 1 && MODE == 2)
   {
-    Serial.println("校分");
+    Serial.println("modefy minute");
     lastMode = MODE;
   }
   else if (lastMode == 2 && MODE == 3)
   {
-    Serial.println("闹钟调时,按钮A2开启/关闭闹铃");
+    Serial.println("modefy alarm_hour,press buttonA2 to no/off the alarm");
     lastMode = MODE;
   }
   else if (lastMode == 3 && MODE == 4)
   {
-    Serial.println("闹钟调分,按钮A2开启/关闭闹铃");
+    Serial.println("modefy alarm_minute,press buttonA2 to no/off the alarm");
     lastMode = MODE;
   }
 }
@@ -193,20 +195,19 @@ void tip()//向串口输出提示信息
 void printTempe()//向串口输出温度
 {
   Serial.println("the temperature is:");
-  Serial.print(readTem.readT());
+  temperature = readTem.readT();
+  Serial.print(temperature);
   Serial.println(".C");
   tempflag = true;
 }
 
 void displaytemp()//数码管显示温度
 {
-    int temperature = readTem.readT();
-    int first = temperature / 10;
-    int second = temperature % 10;
-    output(first, 1);
-    output(second, 2);
-    output(11, 3);
-    output(12, 4);
+  int temp = temperature;
+  output(temp / 10, 1);
+  output(temp % 10, 2);
+  output(11, 3);
+  output(12, 4);
 }
 
 void output(int num, int sel)
@@ -245,8 +246,8 @@ void control(int num)
     case 3: myclock.setAlarm(com.NumArray); break;
     case 4: myclock.extinguish = true; break;
     case 5: myclock.fullbright = true; break;
-    case 6: printTempe();
-    case 7: readTem.setAlarmTemp(com.NumArray[0]);
+    case 6: printTempe();break;
+    case 7: readTem.setAlarmTemp(com.NumArray[0],com.NumArray[1]);break;
     default: break;
   }
 }
@@ -255,28 +256,27 @@ void loop()
 {
   modefyMODE();
   myclock.set_mode(MODE);//同步时钟内置运行模式参数mode
+  readTem.Tmode(MODE);
   myclock.work();//时钟计时
   RUNMODE();//选择不同模式下的LED灯和时钟的运行方式
   tip();//提示信息
-  
-  if (com.read_command()&&MODE == 0)//其他模式下不处理命令
+  if (com.read_command() && MODE == 0) //其他模式下不处理命令
   {
     int ComNum = com.analyse_command();
     control(ComNum);
-    readTem.alarm();
   }
-  
+  readTem.alarm();
   if (tempflag)
   {
-      timertempera.reStart();
-      tempflag = false;
-      tempflag1 = true;
+    timertempera.reStart();
+    tempflag = false;
+    tempflag1 = true;
   }
-  else if(!timertempera.timerState()&&tempflag1)
+  else if (!timertempera.timerState() && tempflag1)
   {
     displaytemp();//温度显示
   }
-  else if(timertempera.timerState())
+  else if (timertempera.timerState())
   {
     tempflag1 = false;
     myclock.disPlay();//时钟显示

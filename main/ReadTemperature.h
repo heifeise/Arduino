@@ -8,90 +8,30 @@
 #define DQ A4
 #define alarmpin 3//蜂鸣器引脚
 #define button3 A3
-//OneWire G_onewire(DQ);
-DallasTemperature G_temp(new OneWire(DQ));
+#define NOP do { __asm__ __volatile__ ("nop"); } while (0)
+//OneWire DSB(DQ);//读取温度
+
 class readtemperature {
   public:
-    readtemperature();
-    float readT();
-    void setAlarmTemp(int temp);
-    void alarm();
+    readtemperature();//构造函数
+    float readT();//读取当前温度
+    void setAlarmTemp(float temph, float templ);//设置报警温度
+    void alarm();//温度报警
     bool buttonPressed();//确定按钮被按下
-    void interface();
-   private:
-    int alarm_temp;
-    bool alarm_flag;
-    int laststate;
-    bool flag;
-    bool printTip;
-    MyTimer timerb;
- };
-readtemperature::readtemperature()
-{
-   G_temp.begin();
-   int alarm_temp = 9999;
-   alarm_flag = false;
-   laststate = HIGH;
-   flag = false;
-   printTip = false;
-   pinMode(alarmpin,OUTPUT);
-   pinMode(button3,INPUT_PULLUP);
-   digitalWrite(alarmpin,HIGH);
-   timerb.initialset(50);
-}
+    void interface();//在主函数中添加计时器
+    void Tmode(int M);//同步主函数的mode
+  private:
+    byte temp[9];//温度寄存器中的内容
+    byte address[8];//rom地址
+    bool alarm_flag;//事项按钮控制是否可以响铃
+    int laststate;//记录按钮的上一个状态
+    bool flag;//按钮消抖用
+    bool printTip;//空值温度报警的提示输出
+    MyTimer timerb;//用以按钮消抖
+    MyTimer timeral;//控制alarm函数中读取温度的频率
+    float alarm_temp;//报警温度
+    float tempeN;//当前温度（两秒更新一次）
+    int mode;
+};
 
-bool readtemperature::buttonPressed()//确定A1是否被按下
-{
-  int buttonState = digitalRead(button3);
-  if (buttonState == HIGH) //未按下
-  {
-    laststate = buttonState;
-    flag = false;
-  }
-  if (buttonState == LOW && laststate == HIGH && !flag) //下降沿
-  {
-    timerb.reStart();
-    flag = true;
-  }
-  if (buttonState == LOW && laststate == HIGH && timerb.timerState() && flag) //确定被按下
-  {
-    laststate = buttonState;
-    return true;
-  }
-  return false;
-}
-
-void readtemperature::interface()
-{
-  timerb.modefyTime();
-}
-
-float readtemperature::readT()
-{
-  G_temp.requestTemperatures();
-  return G_temp.getTempCByIndex(0);
-}
-
-void readtemperature::setAlarmTemp(int temp)
-{
-  alarm_temp = temp;
-}
-
-void readtemperature::alarm()
-{
-  if(readT()-alarm_temp >= 0&&alarm_flag)
-  {
-    digitalWrite(alarmpin,LOW);
-    if(printTip)
-    {
-      Serial.println("temperature is over the limitation!");
-      printTip = false;
-    }
-  }
-  if(buttonPressed())
-  {
-    alarm_flag = !alarm_flag;
-    printTip = alarm_flag;
-  }
-}
 #endif

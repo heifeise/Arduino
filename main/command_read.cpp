@@ -14,8 +14,8 @@ bool command::read_command()
     for (int i = 0; i < 5; i++)
       tem ^= command_pack[i];
     Serial.print("\n//------------------\nMark is:");
-    Serial.print(tem);
-    Serial.print("(decimal)\n//------------------\n");
+    Serial.print(tem,HEX);
+    Serial.print("\n//------------------\n");
     if (command_pack[0] == 0xa0 && check_command())
     {
       getcommand = true;
