@@ -3,7 +3,7 @@
 class MyTimer {
   public:
     MyTimer(int _times);//构造函数，设置要求的定时时间，设置运行状态
-    MyTimer(){};
+    MyTimer() {};
     void initialset(int _times);
     bool timerState();//查看定时状态
     void reStart();//重置软定时器

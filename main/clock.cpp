@@ -8,21 +8,19 @@ myClock::myClock()
   int hour = 0;
   flag1 = false;
   flag2 = false;
-  flag_alarm = false;
+  printTip = true;
   buttonpin1 = A2;
   buttonpin2 = A3;
   alarm_minute = 0;
   alarm_hour = 0;
-  alarmpin = 3;
   extinguish = false;
   fullbright = false;
   pinMode(buttonpin1, INPUT_PULLUP);
   pinMode(buttonpin2, INPUT_PULLUP);
-  pinMode(alarmpin, OUTPUT);
   pinMode(SDI, OUTPUT);
   pinMode(SFTCLK, OUTPUT);
   pinMode(LCHCLK, OUTPUT);
-  digitalWrite(alarmpin,HIGH);
+  //  digitalWrite(alarmpin,HIGH);
   //函数外不可初始化，手动设置初始状态
   timer.initialset(1000);
   timerb1.initialset(50);
@@ -38,7 +36,6 @@ void myClock::work()
     modefy_second();
     timer.reStart();
   }
-  alarm();
 }
 
 void myClock::modefy_second()
@@ -175,25 +172,23 @@ void myClock::set_alarm()
 
 }
 
-void myClock::alarm()
+bool myClock::alarm()
 {
 
   if (mode == 0)
   {
-    if (alarm_minute == minute && alarm_hour == hour && flag_alarm)
+    if (alarm_minute == minute && alarm_hour == hour)
     {
-      digitalWrite(alarmpin, LOW);
+      if (printTip)
+      {
+        Serial.println("the alarm time has come!");
+        printTip = false;
+      }
+      return true;
     }
-    else
-    {
-      digitalWrite(alarmpin, HIGH);
-    }
-    if (setbutton1() == 1) //关闭响铃
-    {
-      flag_alarm = !flag_alarm;
-    }
+    printTip = true;
   }
-
+  return false;
 }
 
 void myClock::disPlay()
@@ -201,7 +196,7 @@ void myClock::disPlay()
   static bool flag = false;
   if (extinguish)
   {
-    if(!flag)
+    if (!flag)
     {
       timerExt_Bri.reStart();
       flag = true;
@@ -216,9 +211,9 @@ void myClock::disPlay()
       flag = false;
     }
   }
-  else if(fullbright)
+  else if (fullbright)
   {
-    if(!flag)
+    if (!flag)
     {
       timerExt_Bri.reStart();
       flag = true;

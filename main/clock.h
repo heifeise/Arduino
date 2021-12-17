@@ -10,7 +10,7 @@ class myClock {
     void modefy_minute();//当按下按钮时或计时满秒时修改分钟
     void modefy_hour();
     void set_alarm();//设置闹钟
-    void alarm();//响铃
+    bool alarm();//响铃
     int setbutton1();//确定按钮A2是否被按下
     int setbutton2();//确定按钮A3是否被按下
     void set_mode(int M) {
@@ -21,7 +21,6 @@ class myClock {
     void interface()//向主函数的终端服务程序中添加计时器
     {
       timer.modefyTime();
-      //      timer1.modefyTime();
       timerb1.modefyTime();
       timerb2.modefyTime();
       timerExt_Bri.modefyTime();
@@ -33,13 +32,11 @@ class myClock {
     bool fullbright;//全亮
   private:
     MyTimer timer;//计时器，以秒为单位，修改时间
-    //    MyTimer timer1;//计时器，串口输出用，每隔一秒向串口输出一次时间
     MyTimer timerb1;//计时器，用以按钮A2消抖
     MyTimer timerb2;//计时器，用以按钮A3消抖
     MyTimer timerExt_Bri;//计时器，控制全亮和全灭状态的持续时间
     int buttonpin1;//加操作
     int buttonpin2;//减操作
-    int alarmpin;//蜂鸣器引脚
     int laststate1;//A2的上一状态
     int laststate2;//A3的上一状态
     bool flag1;//A2消抖用
@@ -52,7 +49,7 @@ class myClock {
     unsigned char SELECTED[5] = {0x00, 0x01, 0x02, 0x04, 0x08};//片选
     int alarm_minute;//闹钟时间
     int alarm_hour;//闹钟时间
-    bool flag_alarm;//控制闹钟是否消音
+    bool printTip;
     int mode;//运行模式
     const static int SDI = 8; //输入
     const static int SFTCLK = 7; //移位,低电平使能
